@@ -263,10 +263,6 @@ IndirRouter.get("/download", async (req, res: Response<IError | ISuccess>) => {
     res.status(400).send({ reason: "UNAVAILABLE_PATH" });
     return;
   }
-  if (typeof program !== "string" || !isValidProgram(program)) {
-    res.status(400).send({ reason: "UNAVAILABLE_PROGRAM" });
-    return;
-  }
 
   let absolutePath: string;
   if (uuid) {
@@ -298,6 +294,10 @@ IndirRouter.get("/download", async (req, res: Response<IError | ISuccess>) => {
 
     if (!(await isCloudUser(id))) {
       res.status(400).send({ reason: "NOT_REGISTERED" });
+      return;
+    }
+    if (typeof program !== "string" || !isValidProgram(program)) {
+      res.status(400).send({ reason: "UNAVAILABLE_PROGRAM" });
       return;
     }
 
@@ -329,10 +329,6 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
     res.status(400).send({ reason: "UNAVAILABLE_PATH" });
     return;
   }
-  if (typeof program !== "string" || !isValidProgram(program)) {
-    res.status(400).send({ reason: "UNAVAILABLE_PROGRAM" });
-    return;
-  }
 
   let absolutePath: string;
   if (uuid) {
@@ -364,6 +360,11 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
 
     if (!(await isCloudUser(id))) {
       res.status(400).send({ reason: "NOT_REGISTERED" });
+      return;
+    }
+
+    if (typeof program !== "string" || !isValidProgram(program)) {
+      res.status(400).send({ reason: "UNAVAILABLE_PROGRAM" });
       return;
     }
 
@@ -433,10 +434,6 @@ IndirRouter.get("/stat", async (req, res: Response<IError | IIndir>) => {
     res.status(400).send({ reason: "UNAVAILABLE_PATH" });
     return;
   }
-  if (typeof program !== "string" || !isValidProgram(program)) {
-    res.status(400).send({ reason: "UNAVAILABLE_PROGRAM" });
-    return;
-  }
   let absolutePath: string;
   if (uuid) {
     if (typeof uuid !== "string") {
@@ -451,6 +448,11 @@ IndirRouter.get("/stat", async (req, res: Response<IError | IIndir>) => {
     }
     absolutePath = publicRelativePath;
   } else {
+    if (typeof program !== "string" || !isValidProgram(program)) {
+      res.status(400).send({ reason: "UNAVAILABLE_PROGRAM" });
+      return;
+    }
+
     absolutePath = path.join(env.cloud_path, id, program, relativePath);
 
     if (!isValidPath(id, program, absolutePath)) {
