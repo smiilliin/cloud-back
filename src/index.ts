@@ -104,6 +104,8 @@ export {
   getPathCapacity,
 };
 
+new Strings(app);
+
 app.use((req, res: Response<IError>) => {
   res.status(404).send({ reason: "BAD_REQUEST" });
 });
@@ -111,8 +113,6 @@ app.use((err: unknown, req: express.Request, res: express.Response) => {
   console.error(err);
   res.status(500).send({ reason: "SERVER_ERROR" });
 });
-
-new Strings(app);
 
 const httpServer = http.createServer(app).listen(env.port, () => {
   console.log("cloud-back is running");
