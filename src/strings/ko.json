@@ -20,5 +20,6 @@
   "CAPACITY_FULL": "용량이 가득찼습니다.",
   "SEND_EXCEEDED": "전송량이 초과되었습니다.",
   "UNAVAILABLE_SIZE": "용량이 올바르지 않습니다.",
-  "TOO_BIG_SIZE": "용량이 너무 큽니다."
+  "TOO_BIG_SIZE": "용량이 너무 큽니다.",
+  "FILE_UNSAFE": "파일이 안전하지 않습니다."
 }

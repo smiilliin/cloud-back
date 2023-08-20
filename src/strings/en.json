@@ -20,5 +20,6 @@
   "CAPACITY_FULL": "Capacity is full.",
   "SEND_EXCEEDED": "Send volume exceeded.",
   "UNAVAILABLE_SIZE": "The size is unavailable.",
-  "TOO_BIG_SIZE": "The size is too big."
+  "TOO_BIG_SIZE": "The size is too big.",
+  "FILE_UNSAFE": "The file is unsafe."
 }

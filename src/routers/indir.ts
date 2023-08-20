@@ -381,7 +381,7 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
   }
 
   try {
-    let mimeType = mime.lookup(absolutePath);
+    const mimeType = mime.lookup(absolutePath);
 
     const safeMimeTypes = [
       "text/plain",
@@ -397,7 +397,8 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
       "application/pdf",
     ];
     if (!safeMimeTypes.includes(mimeType)) {
-      mimeType = "application/octet-stream";
+      res.status(400).send({ reason: "FILE_UNSAFE" });
+      return;
     }
     res.setHeader("Content-Type", mimeType);
     res
