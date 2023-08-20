@@ -130,7 +130,7 @@ IndirRouter.post("/program", async (req, res: Response<IError | ISuccess>) => {
     return;
   }
 
-  const { program } = req.query;
+  const { program } = req.body;
 
   if (typeof program !== "string" || !isValidProgram(program)) {
     res.status(400).send({ reason: "UNAVAILABLE_PROGRAM" });
@@ -168,7 +168,7 @@ IndirRouter.delete(
       return;
     }
 
-    const { program } = req.query;
+    const { program } = req.body;
 
     if (typeof program !== "string" || !isValidProgram(program)) {
       res.status(400).send({ reason: "UNAVAILABLE_PROGRAM" });
@@ -216,7 +216,7 @@ IndirRouter.post("/mkdir", async (req, res: Response<IError | ISuccess>) => {
     return;
   }
 
-  const { dir: relativeDir, program: _program, name } = req.query;
+  const { dir: relativeDir, program: _program, name } = req.body;
   const program = _program || "cloud";
 
   if (typeof relativeDir != "string") {
