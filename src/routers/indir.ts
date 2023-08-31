@@ -400,7 +400,7 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
       res.status(400).send({ reason: "FILE_UNSAFE" });
       return;
     }
-    res.setHeader("Content-Type", mimeType);
+    res.setHeader("Content-Type", [mimeType, "charset=utf-8"].join(";"));
     res
       .status(200)
       .sendFile(absolutePath, { etag: false, lastModified: false });
