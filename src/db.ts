@@ -1,7 +1,7 @@
 import { Pool, PoolConnection } from "mysql";
 import { pool } from "./static";
 import { getNormalizedPath } from ".";
-import { v4 as createUUID } from "uuid";
+import { nanoid } from "nanoid";
 
 const getConnection = (pool: Pool): Promise<PoolConnection> => {
   return new Promise((resolve, reject) => {
@@ -147,7 +147,7 @@ const renamePublicPathDB = async (
   return true;
 };
 const renamePublicPath = fromdb(pool, renamePublicPathDB, undefined);
-const deletePublicUUIDDB = async (
+const deletePublicNIDDB = async (
   connection: PoolConnection,
   id: string,
   uuid: string
@@ -158,27 +158,27 @@ const deletePublicUUIDDB = async (
   ]);
   return true;
 };
-const deletePublicUUID = fromdb(pool, deletePublicUUIDDB, undefined);
+const deletePublicNID = fromdb(pool, deletePublicNIDDB, undefined);
 const postPublicPathDB = async (
   connection: PoolConnection,
   id: string,
   absolutePath: string
 ): Promise<string | undefined> => {
-  const uuid = createUUID();
+  const nid = nanoid();
   await query<IGetPublicQuery>(
     connection,
     "INSERT INTO cloudPublic VALUES(?, ?, ?)",
-    [id, getNormalizedPath(absolutePath), uuid]
+    [id, getNormalizedPath(absolutePath), nid]
   );
-  return uuid;
+  return nid;
 };
 const postPublicPath = fromdb(pool, postPublicPathDB, undefined);
 
 export {
   postPublicPathDB,
   postPublicPath,
-  deletePublicUUID,
-  deletePublicUUIDDB,
+  deletePublicNID as deletePublicUUID,
+  deletePublicNIDDB as deletePublicUUIDDB,
   deletePublicPath,
   deletePublicPathDB,
   getPublicPath,

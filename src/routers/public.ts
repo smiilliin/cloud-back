@@ -1,5 +1,5 @@
 import {
-  deletePublicUUID,
+  deletePublicUUID as deletePublicNID,
   isCloudUser,
   postPublicPath as postPublicPath,
 } from "@/db";
@@ -94,7 +94,7 @@ PublicRouter.delete("/", async (req, res: Response<IError | ISuccess>) => {
     return;
   }
 
-  const result = await deletePublicUUID(id, uuid);
+  const result = await deletePublicNID(id, uuid);
   if (!result) {
     res.status(400).send({ reason: "UNKNOWN_ERROR" });
     return;

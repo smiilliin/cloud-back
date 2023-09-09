@@ -15,7 +15,7 @@
   "UNAVAILABLE_MTIMEMS": "The mtimeMs is unavailable.",
   "UNAVAILABLE_BIRTHTIMEMS": "The birthtimeMs is unavailable.",
   "STREAM_NOT_OPENED": "The stream is not opened.",
-  "UNAVAILABLE_UUID": "The uuid is unavailable.",
+  "UNAVAILABLE_NID": "The uuid is unavailable.",
   "UNAVAILABLE_DATA": "The token is unavailable.",
   "CAPACITY_FULL": "Capacity is full.",
   "SEND_EXCEEDED": "Send volume exceeded.",
