@@ -1,7 +1,7 @@
 import express, { Response } from "express";
 import Strings from "fetchstrings/dist/strings";
 import en from "./strings/en.json";
-import { changeCapacity, getCapacity, setCapacity } from "./db";
+import { changeCapacity, getCapacity, postPublicPath, setCapacity } from "./db";
 import { env } from "./env";
 import cookieParser from "cookie-parser";
 import { IError, generation, pool } from "./static";
@@ -138,6 +138,9 @@ const wss = new WebSocket.Server({ server: httpServer });
 interface ITypeSuccess {
   type: string;
 }
+interface INid extends ITypeSuccess {
+  nid: string;
+}
 interface ITypeReason {
   type: string;
   reason: keyof typeof en;
@@ -194,7 +197,7 @@ wss.on("connection", async (ws) => {
 
     onProcessMessageQueue = false;
   };
-  const closeUploadStream = () => {
+  const closeUploadStream = (): void => {
     if (uploadStream) {
       uploadStream.close();
       uploadStream = undefined;
@@ -266,6 +269,7 @@ wss.on("connection", async (ws) => {
             mtimeMs,
             birthtimeMs,
             size,
+            toPubilc,
           } = data;
           const program = _program || "cloud";
 
@@ -354,7 +358,15 @@ wss.on("connection", async (ws) => {
             }
           });
 
-          wsSend<ITypeSuccess>(ws, { type: "option" });
+          if (toPubilc) {
+            const nid = await postPublicPath(
+              tokenPayload.id,
+              uploadOption.absolutePath
+            );
+            wsSend<INid>(ws, { type: "option", nid: nid });
+          } else {
+            wsSend<ITypeSuccess>(ws, { type: "option" });
+          }
           return;
         }
         case "close": {
@@ -397,6 +409,7 @@ wss.on("connection", async (ws) => {
   };
 
   ws.on("close", () => {
+    closeUploadStream();
     close(true);
   });
   ws.on("error", (error: Error) => {

@@ -128,7 +128,7 @@ const deletePublicPathDB = async (
   await query(
     connection,
     "DELETE FROM cloudPublic WHERE (path LIKE ? OR path=?)",
-    [normalizedAbsolutePath + "%", normalizedAbsolutePath]
+    [normalizedAbsolutePath.replace(/%/g, "\\%") + "%", normalizedAbsolutePath]
   );
   return true;
 };
@@ -163,7 +163,7 @@ const postPublicPathDB = async (
   connection: PoolConnection,
   id: string,
   absolutePath: string
-): Promise<string | undefined> => {
+): Promise<string> => {
   const nid = nanoid();
   await query<IGetPublicQuery>(
     connection,
@@ -173,12 +173,30 @@ const postPublicPathDB = async (
   return nid;
 };
 const postPublicPath = fromdb(pool, postPublicPathDB, undefined);
+interface IGetPathFromNIDQuery {
+  path: string;
+}
+const getPathFromNIDDB = async (
+  connection: PoolConnection,
+  id: string,
+  nid: string
+): Promise<string> => {
+  const { path } = (
+    await query<IGetPathFromNIDQuery>(
+      connection,
+      "SELECT path INTO cloudPublic WHERE id=? AND nid=?",
+      [id, nid]
+    )
+  )[0];
+  return path;
+};
+const getPathFromNID = fromdb(pool, getPathFromNIDDB, undefined);
 
 export {
   postPublicPathDB,
   postPublicPath,
-  deletePublicNID as deletePublicUUID,
-  deletePublicNIDDB as deletePublicUUIDDB,
+  deletePublicNID,
+  deletePublicNIDDB,
   deletePublicPath,
   deletePublicPathDB,
   getPublicPath,
@@ -192,4 +210,6 @@ export {
   setCapacityDB,
   renamePublicPathDB,
   renamePublicPath,
+  getPathFromNID,
+  getPathFromNIDDB,
 };

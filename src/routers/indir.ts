@@ -8,6 +8,7 @@ import {
   changeCapacity,
   getPublicPath,
   renamePublicPath,
+  postPublicPath,
 } from "@/db";
 import fs from "fs";
 import path from "path";
@@ -31,6 +32,9 @@ interface IIndir {
 }
 interface IReaddir {
   inDir: Array<IIndir>;
+}
+interface INid {
+  nid: string;
 }
 IndirRouter.get("/readdir", async (req, res: Response<IError | IReaddir>) => {
   let id: string;
@@ -196,63 +200,78 @@ IndirRouter.delete(
     }
   }
 );
-IndirRouter.post("/mkdir", async (req, res: Response<IError | ISuccess>) => {
-  const accessToken = generation.verifyAccessToken(
-    req.headers.authorization || req.cookies["access-token"]
-  );
-  if (!accessToken) {
-    return res.status(400).send({ reason: "UNAVAILABLE_TOKEN" });
-  }
+IndirRouter.post(
+  "/mkdir",
+  async (req, res: Response<IError | ISuccess | INid>) => {
+    const accessToken = generation.verifyAccessToken(
+      req.headers.authorization || req.cookies["access-token"]
+    );
+    if (!accessToken) {
+      return res.status(400).send({ reason: "UNAVAILABLE_TOKEN" });
+    }
 
-  const { id } = accessToken;
+    const { id } = accessToken;
 
-  if (!reqlimit(pool, id, 1)) {
-    res.status(400).send({ reason: "TOO_MANY_REQUESTS" });
-    return;
-  }
+    if (!reqlimit(pool, id, 1)) {
+      res.status(400).send({ reason: "TOO_MANY_REQUESTS" });
+      return;
+    }
 
-  if (!(await isCloudUser(id))) {
-    res.status(400).send({ reason: "NOT_REGISTERED" });
-    return;
-  }
+    if (!(await isCloudUser(id))) {
+      res.status(400).send({ reason: "NOT_REGISTERED" });
+      return;
+    }
 
-  const { dir: relativeDir, program: _program, name } = req.body;
-  const program = _program || "cloud";
+    const {
+      dir: relativeDir,
+      program: _program,
+      name,
+      toPublic: _toPublic,
+    } = req.body;
+    const program = _program || "cloud";
+    const toPubilc = _toPublic || false;
 
-  if (typeof relativeDir != "string") {
-    res.status(400).send({ reason: "UNAVAILABLE_DIRECTORY" });
-    return;
-  }
-  if (typeof program !== "string" || !isValidProgram(program)) {
-    res.status(400).send({ reason: "UNAVAILABLE_PROGRAM" });
-    return;
-  }
-  if (typeof name != "string" || !isValidIndirName(name)) {
-    res.status(400).send({ reason: "UNAVAILABLE_NAME" });
-    return;
-  }
-  const absoluteDir = path.join(env.cloud_path, id, program, relativeDir);
-  const absolutePath = path.join(
-    env.cloud_path,
-    id,
-    program,
-    relativeDir,
-    name
-  );
+    if (typeof relativeDir != "string") {
+      res.status(400).send({ reason: "UNAVAILABLE_DIRECTORY" });
+      return;
+    }
+    if (typeof program !== "string" || !isValidProgram(program)) {
+      res.status(400).send({ reason: "UNAVAILABLE_PROGRAM" });
+      return;
+    }
+    if (typeof name != "string" || !isValidIndirName(name)) {
+      res.status(400).send({ reason: "UNAVAILABLE_NAME" });
+      return;
+    }
+    const absoluteDir = path.join(env.cloud_path, id, program, relativeDir);
+    const absolutePath = path.join(
+      env.cloud_path,
+      id,
+      program,
+      relativeDir,
+      name
+    );
 
-  if (!isValidDir(id, program, absoluteDir)) {
-    res.status(400).send({ reason: "UNAVAILABLE_DIRECTORY" });
-    return;
-  }
+    if (!isValidDir(id, program, absoluteDir)) {
+      res.status(400).send({ reason: "UNAVAILABLE_DIRECTORY" });
+      return;
+    }
 
-  try {
-    fs.mkdirSync(absolutePath);
+    try {
+      fs.mkdirSync(absolutePath);
 
-    res.status(200).send({});
-  } catch {
-    res.status(400).send({ reason: "UNKNOWN_ERROR" });
+      if (toPubilc) {
+        const nid = await postPublicPath(id, absolutePath);
+
+        res.status(200).send({ nid: nid });
+      }
+
+      res.status(200).send({});
+    } catch {
+      res.status(400).send({ reason: "UNKNOWN_ERROR" });
+    }
   }
-});
+);
 IndirRouter.get("/download", async (req, res: Response<IError | ISuccess>) => {
   let id: string;
 
@@ -408,7 +427,12 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
     res.status(400).send({ reason: "UNKNOWN_ERROR" });
   }
 });
-IndirRouter.get("/stat", async (req, res: Response<IError | IIndir>) => {
+interface IGetStat {
+  isDir: boolean;
+  mtimeMs: number;
+  birthtimeMs: number;
+}
+IndirRouter.get("/stat", async (req, res: Response<IError | IGetStat>) => {
   const accessToken = generation.verifyAccessToken(
     req.headers.authorization || req.cookies["access-token"]
   );
