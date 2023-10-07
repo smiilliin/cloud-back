@@ -352,7 +352,7 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
   let absolutePath: string;
   if (nid) {
     if (typeof nid !== "string") {
-      res.status(400).send({ reason: "UNAVAILABLE_nid" });
+      res.status(400).send({ reason: "UNAVAILABLE_NID" });
       return;
     }
     const publicRelativePath = await getPublicPath(nid);
@@ -419,6 +419,7 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
       "video/mp4",
       "video/x-msvideo",
       "video/quicktime",
+      "video/x-matroska",
     ];
     if (!safeMimeTypes.includes(mimeType)) {
       res.status(400).send({ reason: "FILE_UNSAFE" });
@@ -428,6 +429,77 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
     res
       .status(200)
       .sendFile(absolutePath, { etag: false, lastModified: false });
+  } catch {
+    res.status(400).send({ reason: "UNKNOWN_ERROR" });
+  }
+});
+interface IMimetype {
+  mimeType: string;
+}
+IndirRouter.get("/mimetype", async (req, res: Response<IError | IMimetype>) => {
+  let id: string;
+
+  const { path: relativePath, program: _program, nid } = req.query;
+  const program = _program || "cloud";
+
+  if (typeof relativePath != "string") {
+    res.status(400).send({ reason: "UNAVAILABLE_PATH" });
+    return;
+  }
+
+  let absolutePath: string;
+  if (nid) {
+    if (typeof nid !== "string") {
+      res.status(400).send({ reason: "UNAVAILABLE_NID" });
+      return;
+    }
+    const publicRelativePath = await getPublicPath(nid);
+
+    if (!publicRelativePath) {
+      res.status(400).send({ reason: "NOT_EXISTS" });
+      return;
+    }
+    absolutePath = publicRelativePath;
+  } else {
+    const accessToken = generation.verifyAccessToken(
+      req.headers.authorization || req.cookies["access-token"]
+    );
+    if (!accessToken) {
+      return res.status(400).send({ reason: "UNAVAILABLE_TOKEN" });
+    }
+
+    id = accessToken.id;
+
+    if (!reqlimit(pool, id, 1)) {
+      res.status(400).send({ reason: "TOO_MANY_REQUESTS" });
+      return;
+    }
+
+    if (!(await isCloudUser(id))) {
+      res.status(400).send({ reason: "NOT_REGISTERED" });
+      return;
+    }
+
+    if (typeof program !== "string" || !isValidProgram(program)) {
+      res.status(400).send({ reason: "UNAVAILABLE_PROGRAM" });
+      return;
+    }
+
+    absolutePath = path.join(env.cloud_path, id, program, relativePath);
+
+    if (!isValidPath(id, program, absolutePath)) {
+      res.status(400).send({ reason: "UNAVAILABLE_PATH" });
+      return;
+    }
+  }
+  if (!fs.existsSync(absolutePath) || fs.statSync(absolutePath).isDirectory()) {
+    res.status(400).send({ reason: "NOT_EXISTS" });
+    return;
+  }
+
+  try {
+    const mimeType = mime.lookup(absolutePath);
+    res.status(200).send({ mimeType: mimeType });
   } catch {
     res.status(400).send({ reason: "UNKNOWN_ERROR" });
   }
