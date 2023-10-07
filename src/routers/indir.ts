@@ -418,6 +418,7 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
       "application/pdf",
       "video/mp4",
       "video/x-msvideo",
+      "video/quicktime",
     ];
     if (!safeMimeTypes.includes(mimeType)) {
       res.status(400).send({ reason: "FILE_UNSAFE" });
