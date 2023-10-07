@@ -405,8 +405,10 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
     const safeMimeTypes = [
       "text/plain",
       "image/jpeg",
+      "image/gif",
       "image/png",
       "image/webp",
+      "image/bmp",
       "video/webm",
       "audio/mpeg",
       "audio/aac",
@@ -414,6 +416,8 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
       "application/json",
       "image/svg+xml",
       "application/pdf",
+      "video/mp4",
+      "video/x-msvideo",
     ];
     if (!safeMimeTypes.includes(mimeType)) {
       res.status(400).send({ reason: "FILE_UNSAFE" });
