@@ -409,6 +409,7 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
       "image/png",
       "image/webp",
       "image/bmp",
+      "image/x-icon",
       "video/webm",
       "audio/mpeg",
       "audio/aac",
@@ -426,9 +427,7 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
       return;
     }
     res.setHeader("Content-Type", [mimeType, "charset=utf-8"].join(";"));
-    res
-      .status(200)
-      .sendFile(absolutePath, { etag: false, lastModified: false });
+    res.status(200).sendFile(absolutePath, { etag: true, lastModified: false });
   } catch {
     res.status(400).send({ reason: "UNKNOWN_ERROR" });
   }
