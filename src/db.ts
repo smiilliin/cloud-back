@@ -109,12 +109,12 @@ interface IGetPublicQuery {
 }
 const getPublicPathDB = async (
   connection: PoolConnection,
-  uuid: string
+  nid: string
 ): Promise<string | undefined> => {
   const result = await query<IGetPublicQuery>(
     connection,
-    "SELECT path FROM cloudPublic WHERE uuid=?",
-    [uuid]
+    "SELECT path FROM cloudPublic WHERE nid=?",
+    [nid]
   );
   if (result.length == 0) return undefined;
   return result[0].path.toString("utf-8");
@@ -150,11 +150,11 @@ const renamePublicPath = fromdb(pool, renamePublicPathDB, undefined);
 const deletePublicNIDDB = async (
   connection: PoolConnection,
   id: string,
-  uuid: string
+  nid: string
 ): Promise<boolean | undefined> => {
-  await query(connection, "DELETE FROM cloudPublic WHERE id=? AND uuid=?", [
+  await query(connection, "DELETE FROM cloudPublic WHERE id=? AND nid=?", [
     id,
-    uuid,
+    nid,
   ]);
   return true;
 };

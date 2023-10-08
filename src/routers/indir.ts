@@ -43,10 +43,6 @@ IndirRouter.get("/readdir", async (req, res: Response<IError | IReaddir>) => {
 
   const { path: relativePath, program, nid } = req.query;
 
-  if (typeof relativePath != "string") {
-    res.status(400).send({ reason: "UNAVAILABLE_PATH" });
-    return;
-  }
   if (nid) {
     if (typeof nid != "string") {
       res.status(400).send({ reason: "UNAVAILABLE_NID" });
@@ -58,8 +54,20 @@ IndirRouter.get("/readdir", async (req, res: Response<IError | IReaddir>) => {
       res.status(400).send({ reason: "UNAVAILABLE_NID" });
       return;
     }
-    absolutePath = path.join(env.cloud_path, publicRelativePath, relativePath);
+    if (typeof relativePath == "string") {
+      absolutePath = path.join(
+        env.cloud_path,
+        publicRelativePath,
+        relativePath
+      );
+    } else {
+      absolutePath = path.join(env.cloud_path, publicRelativePath);
+    }
   } else {
+    if (typeof relativePath != "string") {
+      res.status(400).send({ reason: "UNAVAILABLE_PATH" });
+      return;
+    }
     const accessToken = generation.verifyAccessToken(
       req.headers.authorization || req.cookies["access-token"]
     );
@@ -278,11 +286,6 @@ IndirRouter.get("/download", async (req, res: Response<IError | ISuccess>) => {
   const { path: relativePath, program: _program, nid } = req.query;
   const program = _program || "cloud";
 
-  if (typeof relativePath != "string") {
-    res.status(400).send({ reason: "UNAVAILABLE_PATH" });
-    return;
-  }
-
   let absolutePath: string;
   if (nid) {
     if (typeof nid !== "string") {
@@ -297,6 +300,11 @@ IndirRouter.get("/download", async (req, res: Response<IError | ISuccess>) => {
     }
     absolutePath = publicRelativePath;
   } else {
+    if (typeof relativePath != "string") {
+      res.status(400).send({ reason: "UNAVAILABLE_PATH" });
+      return;
+    }
+
     const accessToken = generation.verifyAccessToken(
       req.headers.authorization || req.cookies["access-token"]
     );
@@ -344,11 +352,6 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
   const { path: relativePath, program: _program, nid } = req.query;
   const program = _program || "cloud";
 
-  if (typeof relativePath != "string") {
-    res.status(400).send({ reason: "UNAVAILABLE_PATH" });
-    return;
-  }
-
   let absolutePath: string;
   if (nid) {
     if (typeof nid !== "string") {
@@ -356,6 +359,7 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
       return;
     }
     const publicRelativePath = await getPublicPath(nid);
+    console.log(nid, publicRelativePath);
 
     if (!publicRelativePath) {
       res.status(400).send({ reason: "NOT_EXISTS" });
@@ -363,6 +367,11 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
     }
     absolutePath = publicRelativePath;
   } else {
+    if (typeof relativePath != "string") {
+      res.status(400).send({ reason: "UNAVAILABLE_PATH" });
+      return;
+    }
+
     const accessToken = generation.verifyAccessToken(
       req.headers.authorization || req.cookies["access-token"]
     );
@@ -441,11 +450,6 @@ IndirRouter.get("/mimetype", async (req, res: Response<IError | IMimetype>) => {
   const { path: relativePath, program: _program, nid } = req.query;
   const program = _program || "cloud";
 
-  if (typeof relativePath != "string") {
-    res.status(400).send({ reason: "UNAVAILABLE_PATH" });
-    return;
-  }
-
   let absolutePath: string;
   if (nid) {
     if (typeof nid !== "string") {
@@ -460,6 +464,11 @@ IndirRouter.get("/mimetype", async (req, res: Response<IError | IMimetype>) => {
     }
     absolutePath = publicRelativePath;
   } else {
+    if (typeof relativePath != "string") {
+      res.status(400).send({ reason: "UNAVAILABLE_PATH" });
+      return;
+    }
+
     const accessToken = generation.verifyAccessToken(
       req.headers.authorization || req.cookies["access-token"]
     );
@@ -531,10 +540,6 @@ IndirRouter.get("/stat", async (req, res: Response<IError | IGetStat>) => {
   const { path: relativePath, _program, nid } = req.query;
   const program = _program || "cloud";
 
-  if (typeof relativePath != "string") {
-    res.status(400).send({ reason: "UNAVAILABLE_PATH" });
-    return;
-  }
   let absolutePath: string;
   if (nid) {
     if (typeof nid !== "string") {
@@ -549,6 +554,11 @@ IndirRouter.get("/stat", async (req, res: Response<IError | IGetStat>) => {
     }
     absolutePath = publicRelativePath;
   } else {
+    if (typeof relativePath != "string") {
+      res.status(400).send({ reason: "UNAVAILABLE_PATH" });
+      return;
+    }
+
     if (typeof program !== "string" || !isValidProgram(program)) {
       res.status(400).send({ reason: "UNAVAILABLE_PROGRAM" });
       return;
