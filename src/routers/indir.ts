@@ -151,6 +151,10 @@ IndirRouter.post("/program", async (req, res: Response<IError | ISuccess>) => {
   const absolutePath = path.join(env.cloud_path, id, program);
 
   try {
+    if (fs.existsSync(absolutePath)) {
+      res.status(400).send({ reason: "ALREADY_CREATED_PROGRAM" });
+      return;
+    }
     fs.mkdirSync(absolutePath);
 
     res.status(200).send({});
@@ -266,6 +270,10 @@ IndirRouter.post(
     }
 
     try {
+      if (fs.existsSync(absolutePath)) {
+        res.status(400).send({ reason: "ALREADY_CREATED_DIRECTORY" });
+        return;
+      }
       fs.mkdirSync(absolutePath);
 
       if (toPubilc) {

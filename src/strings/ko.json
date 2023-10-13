@@ -21,5 +21,7 @@
   "SEND_EXCEEDED": "전송량이 초과되었습니다.",
   "UNAVAILABLE_SIZE": "용량이 올바르지 않습니다.",
   "TOO_BIG_SIZE": "용량이 너무 큽니다.",
-  "FILE_UNSAFE": "파일이 안전하지 않습니다."
+  "FILE_UNSAFE": "파일이 안전하지 않습니다.",
+  "ALREADY_CREATED_PROGRAM": "이미 이 프로그램을 생성했습니다.",
+  "ALREADY_CREATED_DIRECTORY": "이미 이 디렉토리를 생성했습니다."
 }

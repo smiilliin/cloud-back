@@ -21,5 +21,7 @@
   "SEND_EXCEEDED": "Send volume exceeded.",
   "UNAVAILABLE_SIZE": "The size is unavailable.",
   "TOO_BIG_SIZE": "The size is too big.",
-  "FILE_UNSAFE": "The file is unsafe."
+  "FILE_UNSAFE": "The file is unsafe.",
+  "ALREADY_CREATED_PROGRAM": "You have already created this program.",
+  "ALREADY_CREATED_DIRECTORY": "You have already created this directory."
 }
