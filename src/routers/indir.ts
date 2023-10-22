@@ -734,7 +734,11 @@ IndirRouter.post("/mv", async (req, res: Response<IError | ISuccess>) => {
     res.status(400).send({ reason: "UNAVAILABLE_PATH" });
     return;
   }
-  if (!fs.existsSync(absoluteNewPath)) {
+  if (!fs.existsSync(absoluteOldPath)) {
+    res.status(400).send({ reason: "NOT_EXISTS" });
+    return;
+  }
+  if (!fs.existsSync(path.dirname(absoluteNewPath))) {
     res.status(400).send({ reason: "NOT_EXISTS" });
     return;
   }
@@ -745,6 +749,103 @@ IndirRouter.post("/mv", async (req, res: Response<IError | ISuccess>) => {
       await renamePublicPath(absoluteOldPath, absoluteNewPath);
     } else {
       await deletePublicPath(absoluteOldPath);
+    }
+    res.status(200).send({});
+  } catch (err) {
+    console.error(err);
+    res.status(400).send({ reason: "UNKNOWN_ERROR" });
+  }
+});
+IndirRouter.post("/cp", async (req, res: Response<IError | ISuccess>) => {
+  const accessToken = generation.verifyAccessToken(
+    req.headers.authorization || req.cookies["access-token"]
+  );
+  if (!accessToken) {
+    return res.status(400).send({ reason: "UNAVAILABLE_TOKEN" });
+  }
+
+  const { id } = accessToken;
+
+  if (!reqlimit(pool, id, 1)) {
+    res.status(400).send({ reason: "TOO_MANY_REQUESTS" });
+    return;
+  }
+
+  if (!(await isCloudUser(id))) {
+    res.status(400).send({ reason: "NOT_REGISTERED" });
+    return;
+  }
+
+  const {
+    currentPath: relativeCurrentPath,
+    currentProgram: _currentProgram,
+    newPath: relativeNewPath,
+    newProgram: _newProgram,
+    keepPublic,
+  } = req.body;
+  const currentProgram = _currentProgram || "cloud";
+  const newProgram = _newProgram || currentProgram;
+
+  if (typeof relativeCurrentPath != "string") {
+    res.status(400).send({ reason: "UNAVAILABLE_PATH" });
+    return;
+  }
+  if (typeof currentProgram !== "string" || !isValidProgram(currentProgram)) {
+    res.status(400).send({ reason: "UNAVAILABLE_PROGRAM" });
+    return;
+  }
+
+  if (typeof relativeNewPath != "string") {
+    res.status(400).send({ reason: "UNAVAILABLE_PATH" });
+    return;
+  }
+  if (typeof newProgram !== "string" || !isValidProgram(newProgram)) {
+    res.status(400).send({ reason: "UNAVAILABLE_PROGRAM" });
+    return;
+  }
+  const absoluteCurrentPath = path.join(
+    env.cloud_path,
+    id,
+    currentProgram,
+    relativeCurrentPath
+  );
+  const absoluteNewPath = path.join(
+    env.cloud_path,
+    id,
+    newProgram,
+    relativeNewPath
+  );
+
+  if (
+    !isValidPath(id, currentProgram, absoluteCurrentPath) ||
+    isPathMatch(
+      absoluteCurrentPath,
+      path.join(env.cloud_path, id, currentProgram)
+    )
+  ) {
+    res.status(400).send({ reason: "UNAVAILABLE_PATH" });
+    return;
+  }
+  if (
+    !isValidPath(id, newProgram, absoluteNewPath) ||
+    isPathMatch(absoluteNewPath, path.join(env.cloud_path, id, newProgram))
+  ) {
+    res.status(400).send({ reason: "UNAVAILABLE_PATH" });
+    return;
+  }
+  if (!fs.existsSync(absoluteCurrentPath)) {
+    res.status(400).send({ reason: "NOT_EXISTS" });
+    return;
+  }
+  if (!fs.existsSync(path.dirname(absoluteNewPath))) {
+    res.status(400).send({ reason: "NOT_EXISTS" });
+    return;
+  }
+
+  try {
+    fs.copyFileSync(absoluteCurrentPath, absoluteNewPath);
+    if (typeof keepPublic == "boolean" && keepPublic) {
+      await postPublicPath(id, absoluteNewPath);
     }
     res.status(200).send({});
   } catch (err) {
