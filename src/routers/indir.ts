@@ -357,7 +357,7 @@ IndirRouter.get("/download", async (req, res: Response<IError | ISuccess>) => {
 IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
   let id: string;
 
-  const { path: relativePath, program: _program, nid } = req.query;
+  const { path: relativePath, program: _program, nid, plain } = req.query;
   const program = _program || "cloud";
 
   let absolutePath: string;
@@ -367,7 +367,6 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
       return;
     }
     const publicRelativePath = await getPublicPath(nid);
-    console.log(nid, publicRelativePath);
 
     if (!publicRelativePath) {
       res.status(400).send({ reason: "NOT_EXISTS" });
@@ -417,7 +416,7 @@ IndirRouter.get("/file", async (req, res: Response<IError | ISuccess>) => {
   }
 
   try {
-    const mimeType = mime.lookup(absolutePath);
+    const mimeType = plain == "true" ? "text/plain" : mime.lookup(absolutePath);
 
     const safeMimeTypes = [
       "text/plain",
