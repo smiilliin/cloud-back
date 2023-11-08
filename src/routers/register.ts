@@ -3,9 +3,11 @@ import { getRankDB } from "@/rank";
 import { Rank, hasRank } from "@/ranks";
 import { IError, ISuccess, generation, pool } from "@/static";
 import reqlimit from "@/reqlimit";
-import { fromdb, isCloudUserDB, query } from "@/db";
+import { fromdb, isCloudUserDB, query, setCapacity } from "@/db";
 import fs from "fs";
 import { env } from "@/env";
+import { getPathCapacity } from "..";
+import path from "path";
 
 const RegisterRouter = express.Router();
 
@@ -85,6 +87,7 @@ RegisterRouter.post("/", async (req, res: Response<IError | ISuccess>) => {
           return;
         }
       }
+      setCapacity(id, getPathCapacity(path.join(env.cloud_path, id)));
 
       await query(connection, "INSERT INTO cloudUser VALUES(?)", [id]);
       res.status(200).send({});
