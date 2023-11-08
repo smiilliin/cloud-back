@@ -119,8 +119,9 @@ const httpServer = http.createServer(app).listen(env.port, () => {
 });
 interface IUploadOption {
   absolutePath: string;
-  mtimeMs: number;
-  birthtimeMs: number;
+  mtimeMs?: number;
+  birthtimeMs?: number;
+  edit: boolean;
 }
 
 const wsSend = <T>(ws: WebSocket, data: T) => {
@@ -203,12 +204,12 @@ wss.on("connection", async (ws) => {
       uploadStream = undefined;
       uploadedBytes = 0;
 
-      if (uploadOption) {
+      if (uploadOption && !uploadOption.edit) {
         try {
           fs.utimesSync(
             uploadOption.absolutePath,
-            new Date(uploadOption.birthtimeMs),
-            new Date(uploadOption.mtimeMs)
+            new Date(uploadOption.birthtimeMs as number),
+            new Date(uploadOption.mtimeMs as number)
           );
         } catch (err) {
           console.error(err);
@@ -270,6 +271,7 @@ wss.on("connection", async (ws) => {
             birthtimeMs,
             size,
             toPubilc,
+            edit,
           } = data;
           const program = _program || "cloud";
 
@@ -290,16 +292,22 @@ wss.on("connection", async (ws) => {
             });
             return;
           }
-          if (typeof mtimeMs != "number") {
-            wsSendReason(ws, { type: "option", reason: "UNAVAILABLE_MTIMEMS" });
-            return;
-          }
-          if (typeof birthtimeMs != "number") {
-            wsSendReason(ws, {
-              type: "option",
-              reason: "UNAVAILABLE_BIRTHTIMEMS",
-            });
-            return;
+
+          if (!edit) {
+            if (typeof mtimeMs != "number") {
+              wsSendReason(ws, {
+                type: "option",
+                reason: "UNAVAILABLE_MTIMEMS",
+              });
+              return;
+            }
+            if (typeof birthtimeMs != "number") {
+              wsSendReason(ws, {
+                type: "option",
+                reason: "UNAVAILABLE_BIRTHTIMEMS",
+              });
+              return;
+            }
           }
           closeUploadStream();
 
@@ -314,6 +322,7 @@ wss.on("connection", async (ws) => {
             absolutePath: absolutePath,
             mtimeMs: mtimeMs,
             birthtimeMs: birthtimeMs,
+            edit: edit ? true : false,
           };
 
           let existsFileSize: number = 0;
